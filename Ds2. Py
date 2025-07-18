@@ -1,0 +1,56 @@
+import pandas as pd
+import numpy as np
+
+# Load dataset
+df = pd.read_csv("messy_dataset.csv")
+
+# --- 1. Handle Missing Values ---
+# Fill missing numeric values with median
+if 'Age' in df.columns:
+    df['Age'].fillna(df['Age'].median(), inplace=True)
+
+if 'Annual_Income' in df.columns:
+    df['Annual_Income'].fillna(df['Annual_Income'].median(), inplace=True)
+
+if 'Loyalty_Score' in df.columns:
+    df['Loyalty_Score'].fillna(df['Loyalty_Score'].median(), inplace=True)
+
+# Fill missing categorical values
+for col in ['Gender', 'City', 'Account_Status']:
+    if col in df.columns:
+        df[col].fillna('Unknown', inplace=True)
+
+if 'Feedback' in df.columns:
+    df['Feedback'].fillna('No Feedback', inplace=True)
+
+# Fill missing datetime values
+if 'Signup_Date' in df.columns:
+    df['Signup_Date'].fillna(method='ffill', inplace=True)
+
+if 'Last_Login' in df.columns:
+    df['Last_Login'].fillna(method='bfill', inplace=True)
+
+# --- 2. Remove Outliers ---
+if 'Annual_Income' in df.columns:
+    df = df[df['Annual_Income'].between(0, 250000)]
+
+if 'Loyalty_Score' in df.columns:
+    df = df[df['Loyalty_Score'].between(0, 100)]
+
+# --- 3. Data Consistency ---
+for col in ['Gender', 'City', 'Account_Status']:
+    if col in df.columns:
+        df[col] = df[col].astype(str).str.strip().str.title()
+
+# --- 4. Type Conversion ---
+for col in ['Signup_Date', 'Last_Login']:
+    if col in df.columns:
+        df[col] = pd.to_datetime(df[col], errors='coerce', dayfirst=True)
+
+# --- 5. Remove Duplicates ---
+df.drop_duplicates(inplace=True)
+
+# --- 6. Save Cleaned Dataset ---
+df.to_csv("cleaned_dataset.csv", index=False)
+
+print("Data cleaned and saved as cleaned_dataset.csv")
